@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>GAME</title>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<style>
+			body {
+				margin: 0;
+				background-color: black;
+				color: white;
+				font-family: sans-serif;
+				overflow: hidden;
+				display: flex;
+				justify-content: center;
+				align-items: flex-end;
+				height: 100vh;
+				/*transition: background-color 0.1s ease;*/
+			}
+			#bVideo {
+				position: fixed;
+				top: 0;
+				height: 100%;
+				opacity: 0.75;
+			}
+			#speedP {
+				position: fixed;
+				top: 0;
+				left: 10px;
+				color: rgba(255, 255, 255, 0.3);
+			}
+			#spawnP {
+				position: fixed;
+				top: 0;
+				right: 10px;
+				color: rgba(255, 255, 255, 0.3);
+			}
+			.lane {
+				position: relative;
+				width: 160px;
+				height: 100vh;
+				display: flex;
+				flex-direction: column;
+				justify-content: flex-end;
+				align-items: center;
+			}
+			.key {
+				width: 140px;
+				height: 140px;
+				margin-bottom: 20px;
+				border: 3px solid rgba(255, 255, 255, 0.5);
+				border-radius: 15px;
+				font-size: 50px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				transition:
+					transform 0.05s,
+					background 0.05s;
+				z-index: 2;
+				background: rgba(0, 0, 0, 0.5);
+				backdrop-filter: blur(5px);
+			}
+			.note {
+				position: absolute;
+				width: 120px;
+				height: 200px;
+				/* background-color: red; */
+				border-radius: 5px;
+				/* box-shadow: 0 0 15px red; */
+				top: -50px;
+			}
+		</style>
+	</head>
+	<body>
+		<p id="speedP">Speed: <span id="speedOutput"></span></p>
+		<p id="spawnP">Spawn Rate: <span id="spawnOutput"></span>s</p>
+
+		<div class="lane" id="lane-d">
+			<div class="key" id="d">D</div>
+		</div>
+		<div class="lane" id="lane-f">
+			<div class="key" id="f">F</div>
+		</div>
+		<div class="lane" id="lane-j">
+			<div class="key" id="j">J</div>
+		</div>
+		<div class="lane" id="lane-k">
+			<div class="key" id="k">K</div>
+		</div>
+		<script>
+			const keys = ["d", "f", "j", "k"];
+			const notes = [];
+			let speed = 5;
+			let newColor = "#5325f7";
+			let spawnPerSecond = 500;
+
+			let misses = 0;
+			let gameOver = false;
+			const maxMisses = 5;
+
+			const speedOutput = document.getElementById("speedOutput");
+			const spawnOutput = document.getElementById("spawnOutput");
+
+			let spawnInterval = 5000;
+			let spawnTimer;
+
+			let isMissing = false;
+			let keyMiss = false;
+			let missTimeout;
+
+			function triggerMiss() {
+				if (gameOver) return;
+				misses++;
+				isMissing = true;
+
+				// Set background to red immediately
+				document.body.style.backgroundColor = "red";
+
+				if (misses >= maxMisses) {
+					endGame();
+				}
+
+				clearTimeout(missTimeout);
+				missTimeout = setTimeout(() => {
+					isMissing = false;
+					// Return background to black after 100ms
+					document.body.style.backgroundColor = "black";
+				}, 100);
+			}
+
+			function startSpawning() {
+				// Clear existing timer if there is one
+				if (spawnTimer) clearInterval(spawnTimer);
+
+				// Start new timer with the current interval
+				spawnTimer = setInterval(() => {
+					spawnNote();
+				}, spawnInterval);
+			}
+
+			startSpawning();
+
+			document.addEventListener("keydown", (e) => {
+				const keyElement = document.getElementById(e.key);
+				if (keyElement) {
+					keyElement.style.backgroundColor = "rgba(255,255,255,0.25)";
+					keyElement.style.transform = "scale(0.9)";
+					checkHit(e.key);
+				}
+			});
+
+			document.addEventListener("keyup", (e) => {
+				const keyElement = document.getElementById(e.key);
+				if (keyElement) {
+					keyElement.style.backgroundColor = "rgba(0,0,0,0.5)";
+					keyElement.style.transform = "scale(1)";
+				}
+			});
+
+			let lastLane = ""; // Keep track of the last lane used
+
+			function spawnNote() {
+				// 1. Create a list of available keys excluding the last one used
+				const availableKeys = keys.filter((key) => key !== lastLane);
+
+				// 2. Pick a random key from the remaining options
+				const randomKey =
+					availableKeys[
+						Math.floor(Math.random() * availableKeys.length)
+					];
+
+				// 3. Update lastLane for the next spawn
+				lastLane = randomKey;
+
+				const lane = document.getElementById(`lane-${randomKey}`);
+				const noteEl = document.createElement("div");
+				noteEl.classList.add("note");
+				lane.appendChild(noteEl);
+
+				notes.push({
+					el: noteEl,
+					y: -200, // Spawn higher up so they don't pop into view instantly
+					key: randomKey,
+				});
+			}
+
+			function checkHit(key) {
+				const keyElement = document.getElementById(key);
+				if (!keyElement) return;
+
+				const keyRect = keyElement.getBoundingClientRect();
+				let hitFound = false; // Track if we actually hit something
+
+				for (let i = 0; i < notes.length; i++) {
+					const note = notes[i];
+					const noteRect = note.el.getBoundingClientRect();
+
+					if (note.key === key) {
+						const isOverlapping =
+							noteRect.bottom >= keyRect.top &&
+							noteRect.top <= keyRect.bottom;
+
+						if (isOverlapping) {
+							note.el.remove();
+							notes.splice(i, 1);
+							hitFound = true; // Mark as a success
+							break;
+						}
+					}
+				}
+
+				// If the key was pressed but no note was in the zone
+				if (!hitFound) {
+					//triggerMiss();
+					keyMiss = true;
+
+					document.body.style.backgroundColor = "white";
+
+					clearTimeout(missTimeout);
+					missTimeout = setTimeout(() => {
+						keyMiss = false;
+						// Return background to black after 100ms
+						document.body.style.backgroundColor = "black";
+					}, 100);
+				}
+			}
+
+			function update() {
+				if (gameOver) return;
+				for (let i = notes.length - 1; i >= 0; i--) {
+					const note = notes[i];
+					note.y += speed;
+					note.el.style.top = note.y + "px";
+
+					// Check if note fell past the bottom
+					if (note.y > window.innerHeight) {
+						//triggerMiss(); // <--- Add this
+						note.el.remove();
+						notes.splice(i, 1);
+					}
+				}
+				requestAnimationFrame(update);
+			}
+
+			setInterval(spawnNote, 500);
+			//spawnNote();
+			update();
+
+			function updateSpeed() {
+				if (gameOver) return;
+				if (speed < 30) {
+					speed++;
+
+					// Every time speed increases, let's make it spawn 10% faster
+					spawnInterval = Math.max(150, spawnInterval - 50);
+
+					// Restart the loop with the new faster interval
+					startSpawning();
+
+					speedOutput.innerHTML = speed;
+					spawnOutput.innerHTML = (spawnInterval / 1000).toFixed(2);
+
+					setTimeout(updateSpeed, 5000);
+				}
+
+				// Color logic
+				if (speed >= 30) newColor = "white";
+				else if (speed >= 20) newColor = "#a1b2e3";
+				else if (speed >= 10) newColor = "#8c6ef5";
+			}
+			updateSpeed();
+
+			function updateNoteColor() {
+				// Always use the color defined by the current speed
+				let displayColor = newColor;
+				if (keyMiss) {
+					displayColor = "black";
+				} else if (isMissing) {
+					displayColor = "black";
+				}
+
+				const allNotes = document.querySelectorAll(".note");
+				allNotes.forEach((note) => {
+					note.style.backgroundColor = displayColor;
+					note.style.boxShadow = `0 0 15px ${displayColor}`;
+				});
+
+				requestAnimationFrame(updateNoteColor);
+			}
+
+			updateNoteColor();
+		</script>
+	</body>
+</html>
