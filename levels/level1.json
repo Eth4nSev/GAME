@@ -1,0 +1,31 @@
+{
+    "meta": {
+        "songLength": 30,
+        "audio": "media/knockout.m4a",
+        "video": "videos/knockout.mp4",
+        "speed": 8
+    },
+    "timeline": [
+        { "time": 1000, "pos": "d", "func": "" },
+        { "time": 2000, "pos": "f", "func": "" },
+        { "time": 3000, "pos": "j", "func": "" },
+        { "time": 4000, "pos": "k", "func": "" },
+
+        { "time": 5000, "pos": "df", "func": "" },
+        { "time": 6000, "pos": "jk", "func": "" },
+        { "time": 7000, "pos": "dk", "func": "flash" },
+
+        { "time": 8000, "pos": "f", "func": "" },
+        { "time": 8500, "pos": "j", "func": "" },
+        { "time": 9000, "pos": "f", "func": "" },
+        { "time": 9500, "pos": "j", "func": "" },
+
+        { "time": 11000, "pos": "dfjk", "func": "flash" },
+
+        { "time": 13000, "pos": "d", "func": "" },
+        { "time": 13250, "pos": "f", "func": "" },
+        { "time": 13500, "pos": "j", "func": "" },
+        { "time": 13750, "pos": "k", "func": "" },
+        { "time": 14000, "pos": "dfjk", "func": "" }
+    ]
+}

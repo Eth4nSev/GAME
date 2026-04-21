@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>GAME</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div id="startScreen">
+      <h1>RHYTHM GAME</h1>
+      <button id="startButton">START DEMO LEVEL</button>
+    </div>
+    <video src="videos/knockout.mp4" id="bVideo" autoplay loop muted></video>
+    
+    <p id="speedP">Speed: <span id="speedOutput"></span></p>
+    <p id="spawnP">Spawn Rate: <span id="spawnOutput"></span>s</p>
+
+    <div class="lane" id="lane-d">
+      <div class="key" id="d">D</div>
+    </div>
+    <div class="lane" id="lane-f">
+      <div class="key" id="f">F</div>
+    </div>
+    <div class="lane" id="lane-j">
+      <div class="key" id="j">J</div>
+    </div>
+    <div class="lane" id="lane-k">
+      <div class="key" id="k">K</div>
+    </div>
+    <audio id="bAudio" src=""></audio>
+    <script src="script.js"></script>
+  </body>
+</html>
