@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"name": "GAME",
+			"path": "."
+		},
+		{
+			"name": "levels",
+			"path": "F:/game/levels"
+		},
+		{
+			"name": "media",
+			"path": "F:/game/media"
+		},
+		{
+			"name": "videos",
+			"path": "F:/game/videos"
+		}
+	],
+	"settings": {}
+}
