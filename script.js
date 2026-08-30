@@ -1,15 +1,13 @@
 const keys = ["d", "f", "j", "k"];
 let notes = [];
-let pendingEvents = []; // Holds the timeline from JSON
+let pendingEvents = [];
 
-// Game State
 let speed = 5;
 let misses = 0;
 let gameOver = false;
 const maxMisses = 5;
-let travelTime = 0; // Time it takes for a note to reach the hit zone (in ms)
+let travelTime = 0;
 
-// Elements
 const speedOutput = document.getElementById("speedOutput");
 const spawnOutput = document.getElementById("spawnOutput");
 const bAudio = document.getElementById("bAudio");
@@ -19,32 +17,23 @@ let isMissing = false;
 let keyMiss = false;
 let missTimeout;
 
-// ... keep all your previous code ...
-
 const startScreen = document.getElementById("startScreen");
 const startButton = document.getElementById("startButton");
 
 startButton.addEventListener("click", () => {
-    // Hide the start screen
     startScreen.style.display = "none";
     
-    // NOW the browser will allow audio/video to play because the user clicked!
     loadLevel("levels/demo.json");
 });
-
-// ---------------------------------------------------------
-// LEVEL LOADING
-// ---------------------------------------------------------
 
 async function loadLevel(levelFile) {
     try {
         const response = await fetch(levelFile);
         const levelData = await response.json();
 
-        // 1. Apply Meta Data
         speed = levelData.meta.speed;
         speedOutput.innerHTML = speed;
-        spawnOutput.innerHTML = "Fixed"; // No more random intervals
+        spawnOutput.innerHTML = "Fixed";
 
         bAudio.src = levelData.meta.audio;
         if (levelData.meta.video) {
@@ -53,11 +42,8 @@ async function loadLevel(levelFile) {
             bVideo.style.transitionDuration = "30s";
         }
 
-        // 2. Load Timeline Data
-        // Sort it to guarantee chronological order
         pendingEvents = levelData.timeline.sort((a, b) => a.time - b.time);
 
-        // 3. Start Game
         startGame();
     } catch (error) {
         console.error("Error loading level JSON:", error);
@@ -65,16 +51,10 @@ async function loadLevel(levelFile) {
 }
 
 function startGame() {
-    // Calculate travel time: time for a note to go from spawn (-200) to hit zone
-    // Hit zone is roughly at: window.innerHeight - 160 (key height) - 20 (margin)
     const spawnY = -200;
     const hitZoneY = window.innerHeight - 180;
     const distanceToTravel = hitZoneY - spawnY;
-    
-    // Assuming 60 FPS average, calculate frames needed
-    // travelTime (ms) = (frames needed) / 60 * 1000
-    // frames needed = distanceToTravel / speed
-    // So: travelTime = (distanceToTravel / speed) / 60 * 1000
+
     travelTime = (distanceToTravel / speed) / 60 * 1000;
     
     console.log(`Calculated travel time: ${travelTime.toFixed(0)}ms, Distance: ${distanceToTravel}px, Speed: ${speed}px/frame`);
@@ -84,21 +64,16 @@ function startGame() {
     requestAnimationFrame(update);
 }
 
-// ---------------------------------------------------------
-// SPAWN LOGIC
-// ---------------------------------------------------------
-
 function spawnSpecificNotes(eventData) {
-    // Split the 'pos' string (e.g., "df" becomes ["d", "f"])
     const targets = eventData.pos.split("");
 
     targets.forEach((key) => {
-        if (!keys.includes(key)) return; // Skip invalid keys
+        if (!keys.includes(key)) return;
 
         const lane = document.getElementById(`lane-${key}`);
         const noteEl = document.createElement("div");
         noteEl.classList.add("note");
-        noteEl.style.backgroundColor = "white"; // Default color
+        noteEl.style.backgroundColor = "white";
         noteEl.style.boxShadow = `0 0 15px white`;
         lane.appendChild(noteEl);
 
@@ -109,23 +84,15 @@ function spawnSpecificNotes(eventData) {
         });
     });
 
-    // Handle optional functions/effects
     if (eventData.func === "flash") {
         document.body.style.backgroundColor = "white";
         setTimeout(() => (document.body.style.backgroundColor = "black"), 100);
     }
-    // Add more functions here later!
 }
-
-// ---------------------------------------------------------
-// CORE LOOP & HIT DETECTION
-// ---------------------------------------------------------
 
 function update() {
     if (gameOver) return;
 
-    // 1. Check if we need to spawn new notes based on audio time
-    // bAudio.currentTime is in seconds, multiply by 1000 for ms
     const currentAudioTime = bAudio.currentTime * 1000;
 
     while (
@@ -136,7 +103,6 @@ function update() {
         spawnSpecificNotes(nextEvent);
     }
 
-    // 2. Move existing notes down
     for (let i = notes.length - 1; i >= 0; i--) {
         const note = notes[i];
         note.y += speed;
@@ -252,14 +218,6 @@ function triggerMiss() {
     }, 100);
 }
 
-// ---------------------------------------------------------
-// INITIALIZE
-// ---------------------------------------------------------
-// Call loadLevel to start the sequence.
-// Note: Browsers block autoplay unless the user interacts first,
-// so you may want to wrap this in a "Start Game" button click listener later.
-
-// Pause game if viewport is resized (changes would break timing)
 window.addEventListener("resize", () => {
     if (!gameOver && bAudio.src) {
         gameOver = true;
